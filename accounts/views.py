@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
 from rest_framework.response import Response
-from knox.models import AuthToken
-from .serializers import UserSerializer, RegisterSerializer
+from knox.models import AuthToken 
+from .serializers import UserSerializer, RegisterSerializer , CategorySerializer
 from django.contrib.auth import login
+from .models import Category
+from django.http import HttpResponse
 
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
@@ -36,6 +38,13 @@ class LoginAPI(KnoxLoginView):
 class UserAPI(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, ]
     serializer_class = UserSerializer
-
+    
     def get_object(self):
         return self.request.user
+
+
+class ListCategory(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer 
+    
