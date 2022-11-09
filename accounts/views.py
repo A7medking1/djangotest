@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from knox.models import AuthToken 
-from .serializers import UserSerializer, RegisterSerializer , CategorySerializer
+from .serializers import *
 from django.contrib.auth import login
-from .models import Category
-from django.http import HttpResponse
+from .models import *
 
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
@@ -47,4 +47,49 @@ class ListCategory(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, ]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer 
+
+
+class ProductView(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request):
+        query = Product.objects.all()
+        data = []
+        serializers = ProductSerializer(query, many=True)
+        for product in serializers.data:
+            fab_query = Favorite.objects.filter(
+                user=request.user).filter(product_id=product['id'])
+            if fab_query:
+                product['favorit'] = fab_query[0].isFavorit
+            else:
+                product['favorit'] = False
+            data.append(product)
+        return Response(data)
+
+
+class FavoriteView(APIView):
+    permission_classes = [permissions.IsAuthenticated,]
+    def post(self, request):
+        data = request.data['id']
+        #print(data)
+        try:
+            product_obj = Product.objects.get(id=data)
+            # print(data)
+            user = request.user
+            single_favorit_product = Favorite.objects.filter(
+                user=user).filter(product=product_obj).first()
+            if single_favorit_product:
+               # print("single_favorit_product")
+                isFav = single_favorit_product.isFavorit
+                single_favorit_product.isFavorit = not isFav
+                single_favorit_product.save()
+                return Response({'status': 'product changed successfully'})
+            else:
+                Favorite.objects.create(
+                    product=product_obj, user=user, isFavorit=True)
+            response_msg = {'Status': 'product added to favorite successfully'}
+        except:
+            response_msg = {'error': "error when added product to favorite"}
+        return Response(response_msg)
+
     

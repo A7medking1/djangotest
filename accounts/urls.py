@@ -1,4 +1,4 @@
-from .views import RegisterAPI , LoginAPI , UserAPI, ListCategory 
+from .views import *
 from django.urls import path
 from knox import views as knox_views
 
@@ -15,7 +15,9 @@ urlpatterns = [
     path('api/logoutall/', knox_views.LogoutAllView.as_view(), name='logoutall'),   
     path('api/category/', ListCategory.as_view(),name='category' ),
 
-    
+    path('api/products/', ProductView.as_view()),
+    path('api/favorite/', FavoriteView.as_view()),
+
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 
 
