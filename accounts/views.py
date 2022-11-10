@@ -6,11 +6,16 @@ from knox.models import AuthToken
 from .serializers import *
 from django.contrib.auth import login
 from .models import *
-
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
+#from rest_framework import pagination
 
-# Register API
+'''class CustomPagination(pagination.PageNumberPagination):
+    page_size = 10 
+    page_size_query_param = 'count'
+    max_page_size = 10
+    page_query_param = 'page'
+'''
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
@@ -22,8 +27,6 @@ class RegisterAPI(generics.GenericAPIView):
         "user": UserSerializer(user, context=self.get_serializer_context()).data,
         "token": AuthToken.objects.create(user)[1]
         })
-
-
 
 
 class LoginAPI(KnoxLoginView):
@@ -38,7 +41,6 @@ class LoginAPI(KnoxLoginView):
 class UserAPI(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, ]
     serializer_class = UserSerializer
-    
     def get_object(self):
         return self.request.user
 
@@ -46,7 +48,7 @@ class UserAPI(generics.RetrieveAPIView):
 class ListCategory(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, ]
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer 
+    serializer_class = CategorySerializer
 
 
 class ProductView(APIView):
@@ -55,6 +57,7 @@ class ProductView(APIView):
     def get(self, request):
         query = Product.objects.all()
         data = []
+    
         serializers = ProductSerializer(query, many=True)
         for product in serializers.data:
             fab_query = Favorite.objects.filter(
@@ -64,6 +67,7 @@ class ProductView(APIView):
             else:
                 product['favorit'] = False
             data.append(product)
+       
         return Response(data)
 
 
@@ -74,12 +78,10 @@ class FavoriteView(APIView):
         #print(data)
         try:
             product_obj = Product.objects.get(id=data)
-            # print(data)
             user = request.user
             single_favorit_product = Favorite.objects.filter(
                 user=user).filter(product=product_obj).first()
             if single_favorit_product:
-               # print("single_favorit_product")
                 isFav = single_favorit_product.isFavorit
                 single_favorit_product.isFavorit = not isFav
                 single_favorit_product.save()
@@ -91,5 +93,14 @@ class FavoriteView(APIView):
         except:
             response_msg = {'error': "error when added product to favorite"}
         return Response(response_msg)
+    
+    def get(self , request):
+        query = Favorite.objects.filter(user=request.user).filter(isFavorit=True)
+        fav_obj = FavoriteSerializer(query , many=True) 
+        return Response({'data':fav_obj.data})
+       
+        
+
+
 
     
