@@ -57,15 +57,15 @@ class ProductView(APIView):
     def get(self, request):
         query = Product.objects.all()
         data = []
-    
+
         serializers = ProductSerializer(query, many=True)
         for product in serializers.data:
             fab_query = Favorite.objects.filter(
                 user=request.user).filter(product_id=product['id'])
             if fab_query:
-                product['favorit'] = fab_query[0].isFavorite
+                product['favorite'] = fab_query[0].isFavorite
             else:
-                product['favorit'] = False
+                product['favorite'] = False
             data.append(product)
        
         return Response(data)
@@ -86,12 +86,12 @@ class FavoriteView(APIView):
                 single_favorit_product.isFavorite = not isFav
                 single_favorit_product.save()
                 if isFav: 
-                    return Response({'status': 'removo from favorite'}) 
+                    return Response({'status': 'remove from favorite'}) 
                 return Response({'status': 'product added to favorite'})
             else:
                 Favorite.objects.create(
                     product=product_obj, user=user, isFavorite=True)
-            response_msg = {'Status': 'product added to favorite'}
+            response_msg = {'status': 'product added to favorite'}
         except:
             response_msg = {'error': "error when added product to favorite"}
         return Response(response_msg)
@@ -102,6 +102,26 @@ class FavoriteView(APIView):
         return Response(fav_obj.data)
        
         
+
+class ProductByCategoryView(APIView):
+    permission_classes = [permissions.IsAuthenticated,]
+
+    def get(self,request):
+        category_id = request.data['category_id']
+        query = Product.objects.filter(category=category_id)
+        serializers = ProductSerializer(query,many=True)
+
+        data = []
+        for product in serializers.data:
+            fab_query = Favorite.objects.filter(
+                user=request.user).filter(product_id=product['id'])
+            if fab_query:
+                product['favorite'] = fab_query[0].isFavorite
+            else:
+                product['favorite'] = False
+            data.append(product)
+       
+        return Response(data)
 
 
 

@@ -18,6 +18,7 @@ urlpatterns = [
     path('api/category/', ListCategory.as_view(),name='category' ),
     path('api/products/', ProductView.as_view()),
     path('api/favorite/', FavoriteView.as_view()),
+    path('api/products_by_category/', ProductByCategoryView.as_view()),
 
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 
