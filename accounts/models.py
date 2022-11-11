@@ -29,7 +29,7 @@ class Product(models.Model):
 class Favorite(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.Case)
-    isFavorit = models.BooleanField(default=False)
+    isFavorite = models.BooleanField(default=False)
 
     def __str__(self):
         return f"productID ={self.product.id}user={self.user.username}|ISFavorite={self.isFavorit}"

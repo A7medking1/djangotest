@@ -34,5 +34,5 @@ class ProductSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model =  Favorite
-        fields = '__all__'       
+        fields = ('id','isFavorite' , 'product')      
         depth=1

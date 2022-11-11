@@ -63,7 +63,7 @@ class ProductView(APIView):
             fab_query = Favorite.objects.filter(
                 user=request.user).filter(product_id=product['id'])
             if fab_query:
-                product['favorit'] = fab_query[0].isFavorit
+                product['favorit'] = fab_query[0].isFavorite
             else:
                 product['favorit'] = False
             data.append(product)
@@ -82,22 +82,24 @@ class FavoriteView(APIView):
             single_favorit_product = Favorite.objects.filter(
                 user=user).filter(product=product_obj).first()
             if single_favorit_product:
-                isFav = single_favorit_product.isFavorit
-                single_favorit_product.isFavorit = not isFav
+                isFav = single_favorit_product.isFavorite
+                single_favorit_product.isFavorite = not isFav
                 single_favorit_product.save()
-                return Response({'status': 'product changed successfully'})
+                if isFav: 
+                    return Response({'status': 'removo from favorite'}) 
+                return Response({'status': 'product added to favorite'})
             else:
                 Favorite.objects.create(
-                    product=product_obj, user=user, isFavorit=True)
-            response_msg = {'Status': 'product added to favorite successfully'}
+                    product=product_obj, user=user, isFavorite=True)
+            response_msg = {'Status': 'product added to favorite'}
         except:
             response_msg = {'error': "error when added product to favorite"}
         return Response(response_msg)
     
     def get(self , request):
-        query = Favorite.objects.filter(user=request.user).filter(isFavorit=True)
+        query = Favorite.objects.filter(user=request.user).filter(isFavorite=True)
         fav_obj = FavoriteSerializer(query , many=True) 
-        return Response({'data':fav_obj.data})
+        return Response(fav_obj.data)
        
         
 
