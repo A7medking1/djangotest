@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,8 +5,10 @@ from knox.models import AuthToken
 from .serializers import *
 from django.contrib.auth import login
 from .models import *
+from rest_framework.filters import SearchFilter 
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
+from django_filters.rest_framework import DjangoFilterBackend 
 #from rest_framework import pagination
 
 '''class CustomPagination(pagination.PageNumberPagination):
@@ -107,7 +108,9 @@ class ProductByCategoryView(APIView):
     permission_classes = [permissions.IsAuthenticated,]
 
     def get(self,request):
+
         category_id = request.data['category_id']
+    
         query = Product.objects.filter(category=category_id)
         serializers = ProductSerializer(query,many=True)
 
@@ -125,4 +128,9 @@ class ProductByCategoryView(APIView):
 
 
 
-    
+class SearchView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend,SearchFilter] 
+    search_fields = ['title']
