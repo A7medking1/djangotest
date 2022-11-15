@@ -9,14 +9,14 @@ from rest_framework.filters import SearchFilter
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from knox.views import LoginView as KnoxLoginView
 from django_filters.rest_framework import DjangoFilterBackend 
-#from rest_framework import pagination
+from rest_framework import pagination
 
-'''class CustomPagination(pagination.PageNumberPagination):
+class CustomPagination(pagination.PageNumberPagination):
     page_size = 10 
     page_size_query_param = 'count'
     max_page_size = 10
     page_query_param = 'page'
-'''
+
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
@@ -46,19 +46,23 @@ class UserAPI(generics.RetrieveAPIView):
         return self.request.user
 
 
-class ListCategory(generics.ListCreateAPIView):
+class ListCategory(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    
+    def get(self,request):
+        queryset = Category.objects.all()
+        serializer_class = CategorySerializer(queryset,many=True)
+        return Response(serializer_class.data)
+        
 
 
 class ProductView(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
 
+
     def get(self, request):
         query = Product.objects.all()
-        data = []
-
+        data = []        
         serializers = ProductSerializer(query, many=True)
         for product in serializers.data:
             fab_query = Favorite.objects.filter(
@@ -69,7 +73,7 @@ class ProductView(APIView):
                 product['favorite'] = False
             data.append(product)
        
-        return Response(data)
+        return  Response(data)
 
 
 class FavoriteView(APIView):
@@ -134,3 +138,43 @@ class SearchView(generics.ListAPIView):
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend,SearchFilter] 
     search_fields = ['title']
+
+
+class PoductViewPagination(APIView):
+    serializer_class = ProductSerializer
+    pagination_class = CustomPagination
+
+    @property
+    def paginator(self):
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+    def get(self, request):
+        queryset = Product.objects.all()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(page, many=True)
+            for product in serializer.data:
+                fab_query = Favorite.objects.filter(
+                user=request.user).filter(product_id=product['id'])
+                if fab_query:
+                    product['favorite'] = fab_query[0].isFavorite
+                else:
+                    product['favorite'] = False
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)

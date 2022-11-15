@@ -32,4 +32,4 @@ class Favorite(models.Model):
     isFavorite = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"productID ={self.product.id}user={self.user.username}|ISFavorite={self.isFavorit}"
+        return f"productID ={self.product.id}user={self.user.username}|ISFavorite={self.isFavorite}"
