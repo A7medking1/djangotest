@@ -15,11 +15,12 @@ class Category(models.Model):
 
 class Product(models.Model):
     title = models.CharField(max_length=100)
-    data = models.DateField(auto_now_add=True)
+    #data = models.DateField(auto_now_add=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to="media/product/")
-    marcket_price = models.PositiveIntegerField()
-    selling_price = models.PositiveIntegerField()
+    old_price = models.FloatField(default=0.0)
+    new_price = models.FloatField(default=0.0)
+    discount = models.BooleanField(default=False)
     description = models.TextField()
 
     def __str__(self):

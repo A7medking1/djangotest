@@ -47,7 +47,7 @@ class UserAPI(generics.RetrieveAPIView):
 
 
 class ListCategory(APIView):
-    permission_classes = [permissions.IsAuthenticated, ]
+    #permission_classes = [permissions.IsAuthenticated, ]
     
     def get(self,request):
         queryset = Category.objects.all()
@@ -136,6 +136,7 @@ class SearchView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    pagination_class=None
     filter_backends = [DjangoFilterBackend,SearchFilter] 
     search_fields = ['title']
 
