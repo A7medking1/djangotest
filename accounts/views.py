@@ -113,8 +113,10 @@ class ProductByCategoryView(APIView):
 
     def get(self,request):
 
-        category_id = request.data['category_id']
+        #category_id = request.data['category_id']
     
+        category_id = request.query_params.get('category_id')
+
         query = Product.objects.filter(category=category_id)
         serializers = ProductSerializer(query,many=True)
 
