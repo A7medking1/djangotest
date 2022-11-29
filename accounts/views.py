@@ -181,3 +181,78 @@ class PoductViewPagination(APIView):
 
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
+
+
+
+class CartItemAddView(generics.CreateAPIView):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemAddSerializer
+    pagination_class=None
+    #permission_classes = (permissions.IsAuthenticated, )
+
+
+class CartItemView(generics.ListAPIView):
+    serializer_class = CartItemSerializer
+    #permission_classes = (permissions.IsAuthenticated, )
+    filter_backends = [SearchFilter]
+    pagination_class=None
+    search_fields = [
+        'product__name', 'product__description', 'product__category__name']
+
+    def get_queryset(self):
+        user = self.request.user
+        return CartItem.objects.filter(user=user)
+
+
+
+class CartItemAddOneView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    pagination_class=None
+
+    def get(self, request, pk, format=None):
+        user = request.user
+        cart_item = CartItem.objects.filter(user=user)
+        target_product = cart_item.get(pk=pk)
+
+        target_product.quantity = target_product.quantity + 1
+        target_product.save()
+        return Response(
+            data={"detail": 'added one quantity',})
+
+
+
+class CartItemReduceOneView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
+    pagination_class=None
+    def get(self, request, pk, format=None):
+        user = request.user
+        cart_item = CartItem.objects.filter(user=user)
+        target_product = cart_item.get(pk=pk)
+
+
+        if target_product.quantity <= 1 :
+            return Response(data={"detail":"no quantity to reduce"})
+
+        target_product.quantity = target_product.quantity - 1
+    
+        target_product.save()
+        return Response(
+            data={
+                "detail": 'one object deleted',
+            })
+
+
+class CartItemDelView(generics.DestroyAPIView):
+    permission_classes = (permissions.IsAuthenticated, )
+    queryset = CartItem.objects.all()
+    pagination_class=None
+    def get(self, request, pk, format=None):
+        user = request.user
+        cart_item = CartItem.objects.filter(user=user)
+        target_product = get_object_or_404(cart_item, pk=pk)
+        target_product.delete()
+        return Response(data={"detail": "deleted"})
+
+

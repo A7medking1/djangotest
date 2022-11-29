@@ -20,6 +20,11 @@ urlpatterns = [
     path('api/products_by_category/', ProductByCategoryView.as_view()),
     path('api/search_product/', SearchView.as_view()),
     path('api/test/', PoductViewPagination.as_view()),
+    path('api/cart/', CartItemView.as_view()),
+    path('api/cart/add/', CartItemAddView.as_view()),
+    path('api/cart/increse_quantity/<int:pk>/', CartItemAddOneView.as_view()),
+    path('api/cart/reduce_quantity/<int:pk>/', CartItemReduceOneView.as_view()),
+    path('api/cart/delete/<int:pk>/', CartItemDelView.as_view()),
 
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 
