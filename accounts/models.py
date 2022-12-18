@@ -41,6 +41,17 @@ class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    total_price = models.FloatField(default=0.0)
+    total_price_old = models.FloatField(default=0.0)
 
     def __str__(self):
         return f"productID => {self.product.id} user => {self.user.username} quantit =>{self.quantity}"
+
+
+
+    def add_amount(self):
+        self.total_price  = self.product.new_price * self.quantity
+        self.total_price_old = self.product.old_price * self.quantity
+
+
+        

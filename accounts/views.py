@@ -76,6 +76,7 @@ class ProductView(APIView):
         return  Response(data)
 
 
+
 class FavoriteView(APIView):
     permission_classes = [permissions.IsAuthenticated,]
     def post(self, request):
@@ -183,15 +184,58 @@ class PoductViewPagination(APIView):
         return Response(serializer.data)
 
 
+class CartView(APIView):
 
-class CartItemAddView(generics.CreateAPIView):
+    def get(self, request):
+        query = CartItem.objects.filter(user=request.user)
+        serializers = CartItemSerializer(query,many=True)
+
+        total_price = 0.0
+        total_price_old = 0.0
+        for product in serializers.data:
+            total_price += product['total_price']
+            total_price_old += product['total_price_old']
+            
+        return Response({'total_price':total_price ,'total_price_old':total_price_old, 'data' : serializers.data})
+
+
+class AddToCart(APIView):
+    permission_classes = [permissions.IsAuthenticated,]
+    def post(self, request):
+        prod_id = request.data['product_id']
+        quantity = request.data['quantity']
+        try:
+            prod_obj = Product.objects.get(id=prod_id)
+            check_in_cart = CartItem.objects.filter(
+                user=request.user).filter(product=prod_obj).first()
+
+            if check_in_cart:
+                return  Response({'status':'already in cart'})
+
+            total_price  = float(prod_obj.new_price) * float(quantity)
+            total_price_old = float(prod_obj.old_price) * float(quantity)
+            CartItem.objects.create(
+                product=prod_obj,
+                user=request.user,
+                quantity= quantity,
+                total_price = total_price,
+                total_price_old = total_price_old,
+            )
+            return Response({'status':'added to cart successfully'})
+        except:
+            print("is here")
+            response_msg ='error when added to cart'
+        return Response({'status':response_msg})
+
+        
+'''class CartItemAddView(generics.CreateAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemAddSerializer
     pagination_class=None
-    #permission_classes = (permissions.IsAuthenticated, )
+    #permission_classes = (permissions.IsAuthenticated, )'''
 
 
-class CartItemView(generics.ListAPIView):
+'''class CartItemView(generics.ListAPIView):
     serializer_class = CartItemSerializer
     #permission_classes = (permissions.IsAuthenticated, )
     filter_backends = [SearchFilter]
@@ -202,7 +246,7 @@ class CartItemView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return CartItem.objects.filter(user=user)
-
+'''
 
 
 class CartItemAddOneView(APIView):
@@ -216,6 +260,8 @@ class CartItemAddOneView(APIView):
         target_product = cart_item.get(pk=pk)
 
         target_product.quantity = target_product.quantity + 1
+        target_product.total_price += target_product.product.new_price
+        target_product.total_price_old += target_product.product.old_price
         target_product.save()
         return Response(
             data={"detail": 'added one quantity',})
@@ -236,6 +282,9 @@ class CartItemReduceOneView(APIView):
             return Response(data={"detail":"no quantity to reduce"})
 
         target_product.quantity = target_product.quantity - 1
+
+        target_product.total_price -= target_product.product.new_price
+        target_product.total_price_old -= target_product.product.old_price
     
         target_product.save()
         return Response(
