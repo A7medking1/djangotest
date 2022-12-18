@@ -227,26 +227,6 @@ class AddToCart(APIView):
             response_msg ='error when added to cart'
         return Response({'status':response_msg})
 
-        
-'''class CartItemAddView(generics.CreateAPIView):
-    queryset = CartItem.objects.all()
-    serializer_class = CartItemAddSerializer
-    pagination_class=None
-    #permission_classes = (permissions.IsAuthenticated, )'''
-
-
-'''class CartItemView(generics.ListAPIView):
-    serializer_class = CartItemSerializer
-    #permission_classes = (permissions.IsAuthenticated, )
-    filter_backends = [SearchFilter]
-    pagination_class=None
-    search_fields = [
-        'product__name', 'product__description', 'product__category__name']
-
-    def get_queryset(self):
-        user = self.request.user
-        return CartItem.objects.filter(user=user)
-'''
 
 
 class CartItemAddOneView(APIView):

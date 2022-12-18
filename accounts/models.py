@@ -46,12 +46,7 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"productID => {self.product.id} user => {self.user.username} quantit =>{self.quantity}"
-
-
-
-    def add_amount(self):
-        self.total_price  = self.product.new_price * self.quantity
-        self.total_price_old = self.product.old_price * self.quantity
+        
 
 
         
