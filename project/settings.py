@@ -33,7 +33,9 @@ ALLOWED_HOSTS = [
     '172.20.10.14',
     ]
 
-
+REST_KNOX = {
+       'TOKEN_TTL': None,  # will create tokens that never expire
+    }
 # Application definition
 
 INSTALLED_APPS = [
